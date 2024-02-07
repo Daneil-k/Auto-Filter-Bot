@@ -31,16 +31,24 @@ async def index_files(bot, query):
 async def send_for_index(bot, message):
     if lock.locked():
         return await message.reply('Wait until previous process complete.')
+
     i = await message.reply("Forward last message or send last message link.")
-    msg = await bot.listen(chat_id=message.chat.id, user_id=message.from_user.id)
+    
+    # Wait for the next message from the user
+    try:
+        msg = await bot.listen_for('message', timeout=60, chat_id=message.chat.id, user_id=message.from_user.id)
+    except asyncio.TimeoutError:
+        return await message.reply('Timeout waiting for message.')
+    
     await i.delete()
+
     if msg.text and msg.text.startswith("https://t.me"):
         try:
             msg_link = msg.text.split("/")
             last_msg_id = int(msg_link[-1])
             chat_id = msg_link[-2]
             if chat_id.isnumeric():
-                chat_id = int(("-100" + chat_id))
+                chat_id = int("-100" + chat_id)
         except:
             await message.reply('Invalid message link!')
             return
@@ -48,8 +56,9 @@ async def send_for_index(bot, message):
         last_msg_id = msg.forward_from_message_id
         chat_id = msg.forward_from_chat.username or msg.forward_from_chat.id
     else:
-        await message.reply('This is not forwarded message or link.')
+        await message.reply('This is not a forwarded message or link.')
         return
+
     try:
         chat = await bot.get_chat(chat_id)
     except Exception as e:
@@ -59,8 +68,15 @@ async def send_for_index(bot, message):
         return await message.reply("I can index only channels.")
 
     s = await message.reply("Send skip message number.")
-    msg = await bot.listen(chat_id=message.chat.id, user_id=message.from_user.id)
+    
+    # Wait for the next message from the user
+    try:
+        msg = await bot.listen_for('message', timeout=60, chat_id=message.chat.id, user_id=message.from_user.id)
+    except asyncio.TimeoutError:
+        return await message.reply('Timeout waiting for message.')
+    
     await s.delete()
+
     try:
         skip = int(msg.text)
     except:
