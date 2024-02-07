@@ -28,7 +28,7 @@ async def index_files(bot, query):
 
 
 @Client.on_message(filters.command('index') & filters.private & filters.incoming & filters.user(ADMINS))
-async def send_for_index(bot, message):
+async def send_for_index(client, message):
     if lock.locked():
         return await message.reply('Wait until previous process complete.')
 
@@ -36,7 +36,7 @@ async def send_for_index(bot, message):
     
     # Wait for the next message from the user
     try:
-        msg = await bot.listen_for('message', timeout=60, chat_id=message.chat.id, user_id=message.from_user.id)
+        msg = await client.listen_for('message', timeout=60, chat_id=message.chat.id, user_id=message.from_user.id)
     except asyncio.TimeoutError:
         return await message.reply('Timeout waiting for message.')
     
@@ -60,7 +60,7 @@ async def send_for_index(bot, message):
         return
 
     try:
-        chat = await bot.get_chat(chat_id)
+        chat = await client.get_chat(chat_id)
     except Exception as e:
         return await message.reply(f'Errors - {e}')
 
@@ -71,7 +71,7 @@ async def send_for_index(bot, message):
     
     # Wait for the next message from the user
     try:
-        msg = await bot.listen_for('message', timeout=60, chat_id=message.chat.id, user_id=message.from_user.id)
+        msg = await client.listen_for('message', timeout=60, chat_id=message.chat.id, user_id=message.from_user.id)
     except asyncio.TimeoutError:
         return await message.reply('Timeout waiting for message.')
     
